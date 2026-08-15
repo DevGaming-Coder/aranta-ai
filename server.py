@@ -1,20 +1,25 @@
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from google import genai
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='.')
 CORS(app)
 
 API_KEY = "AQ.Ab8RN6IqJ_8Uica4Y2u1vd54kuSxkXRbfqNubAZ37cZw7YfTqw"
 client = genai.Client(api_key=API_KEY)
 
 chat = client.chats.create(
-    model="gemini-3.6-flash",
+    model="gemini-2.5-flash",
     config={
         "system_instruction": "Your name is Aranta. You are a professional, friendly, and helpful AI assistant."
     }
 )
+
+# Serves index.html at the home page (fixes 404 error)
+@app.route("/")
+def home():
+    return send_from_directory(".", "index.html")
 
 @app.route("/chat", methods=["POST"])
 def handle_chat():
