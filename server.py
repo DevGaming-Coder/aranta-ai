@@ -6,17 +6,9 @@ from google import genai
 app = Flask(__name__, static_folder='.')
 CORS(app)
 
-API_KEY = "AQ.Ab8RN6IqJ_8Uica4Y2u1vd54kuSxkXRbfqNubAZ37cZw7YfTqw"
-client = genai.Client(api_key=API_KEY)
+# Securely fetch API Key from Environment Variables
+API_KEY = os.environ.get("GEMINI_API_KEY")
 
-chat = client.chats.create(
-    model="gemini-2.5-flash",
-    config={
-        "system_instruction": "Your name is Aranta. You are a professional, friendly, and helpful AI assistant."
-    }
-)
-
-# Serves index.html at the home page (fixes 404 error)
 @app.route("/")
 def home():
     return send_from_directory(".", "index.html")
@@ -24,11 +16,22 @@ def home():
 @app.route("/chat", methods=["POST"])
 def handle_chat():
     try:
+        if not API_KEY:
+            return jsonify({"error": "GEMINI_API_KEY is not set in Environment Variables."}), 500
+
+        client = genai.Client(api_key=API_KEY)
         data = request.json
         user_message = data.get("message", "").strip()
 
         if not user_message:
             return jsonify({"error": "Empty message"}), 400
+
+        chat = client.chats.create(
+            model="gemini-2.5-flash",
+            config={
+                "system_instruction": "Your name is Aranta. You are a professional, friendly, and helpful AI assistant."
+            }
+        )
 
         response = chat.send_message(user_message)
         return jsonify({"reply": response.text})
