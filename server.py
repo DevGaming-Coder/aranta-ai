@@ -27,7 +27,7 @@ def handle_chat():
             return jsonify({"error": "Empty message"}), 400
 
         chat = client.chats.create(
-            model="gemini-3.6-flash",
+            model="gemini-3-flash",
             config={
                 "system_instruction": "Your name is Aranta. You are a professional, friendly, and helpful AI assistant."
             }
