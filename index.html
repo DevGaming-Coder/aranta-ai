@@ -10,7 +10,9 @@
         * { box-sizing: border-box; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
         body { background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 20px 0; }
         .chat-container { width: 100%; max-width: 450px; height: 600px; background: #1e293b; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        .header { background: #334155; padding: 16px; text-align: center; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid #475569; }
+        .header { background: #334155; padding: 16px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.1rem; border-bottom: 1px solid #475569; }
+        .clear-btn { background: #ef4444; color: white; border: none; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 0.75rem; font-weight: normal; }
+        .clear-btn:hover { background: #dc2626; }
         .messages { flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
         .msg { max-width: 85%; padding: 12px 16px; border-radius: 12px; font-size: 0.95rem; line-height: 1.4; word-break: break-word; }
         .user { align-self: flex-end; background: #2563eb; color: white; border-bottom-right-radius: 2px; }
@@ -19,20 +21,42 @@
         .bot p:last-child { margin-bottom: 0; }
         .bot ul, .bot ol { margin-left: 20px; margin-bottom: 8px; }
         .bot code { background: #0f172a; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        
+        /* Suggestion Chips */
+        .chips-container { display: flex; gap: 6px; overflow-x: auto; padding: 8px 16px; background: #1e293b; border-top: 1px solid #334155; }
+        .chip { background: #334155; color: #38bdf8; border: 1px solid #0284c7; padding: 6px 12px; border-radius: 16px; font-size: 0.8rem; cursor: pointer; white-space: nowrap; }
+        .chip:hover { background: #0284c7; color: white; }
+
         .input-area { display: flex; padding: 12px; background: #0f172a; gap: 8px; }
         input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; outline: none; }
         button { background: #2563eb; color: white; border: none; padding: 12px 18px; border-radius: 8px; cursor: pointer; font-weight: bold; }
         button:hover { background: #1d4ed8; }
         footer { margin-top: 16px; color: #64748b; font-size: 0.85rem; text-align: center; }
+
+        /* Thinking animation */
+        .dots::after { content: ''; animation: blink 1.5s infinite; }
+        @keyframes blink { 0% { content: '.'; } 33% { content: '..'; } 66% { content: '...'; } }
     </style>
 </head>
 <body>
 
 <div class="chat-container">
-    <div class="header">✨ Aranta AI Assistant</div>
+    <div class="header">
+        <span>✨ Aranta AI Assistant</span>
+        <button class="clear-btn" onclick="clearChat()">Clear Chat</button>
+    </div>
+    
     <div class="messages" id="messageBox">
         <div class="msg bot">Hello! I'm Aranta. How can I assist you today?</div>
     </div>
+
+    <!-- Quick Prompt Suggestions -->
+    <div class="chips-container" id="chipBox">
+        <div class="chip" onclick="quickSend('Help me write code')">💻 Write Code</div>
+        <div class="chip" onclick="quickSend('Explain a complex concept')">📚 Explain Concept</div>
+        <div class="chip" onclick="quickSend('Draft a professional email')">✉️ Draft Email</div>
+    </div>
+
     <div class="input-area">
         <input type="text" id="userInput" placeholder="Ask Aranta anything..." onkeydown="if(event.key==='Enter') sendMsg()">
         <button onclick="sendMsg()">Send</button>
@@ -44,11 +68,26 @@
 </footer>
 
 <script>
+    function quickSend(promptText) {
+        document.getElementById("userInput").value = promptText;
+        sendMsg();
+    }
+
+    function clearChat() {
+        const box = document.getElementById("messageBox");
+        box.innerHTML = '<div class="msg bot">Chat cleared. How else can I help?</div>';
+        document.getElementById("chipBox").style.display = "flex";
+    }
+
     async function sendMsg() {
         const input = document.getElementById("userInput");
         const box = document.getElementById("messageBox");
+        const chipBox = document.getElementById("chipBox");
         const text = input.value.trim();
         if (!text) return;
+
+        // Hide prompt chips after first user message
+        chipBox.style.display = "none";
 
         // User message
         const userDiv = document.createElement("div");
@@ -62,7 +101,7 @@
         // Bot loading element
         const botDiv = document.createElement("div");
         botDiv.className = "msg bot";
-        botDiv.textContent = "Thinking...";
+        botDiv.innerHTML = '<span class="dots">Thinking</span>';
         box.appendChild(botDiv);
         box.scrollTop = box.scrollHeight;
 
